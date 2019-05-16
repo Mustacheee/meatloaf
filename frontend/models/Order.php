@@ -16,10 +16,11 @@ use YiiMailer;
  * @property int $count
  * @property string $restaurant_name
  * @property string $restaurant_link
- * @property string $location
- * @property string $manager_email
+ * @property int $location_id
+ * @property string $manager_id
  * @property string $restrictions
  * @property string $notes
+ * @property int $status
  * @property int $created_by
  * @property string $created_at
  * @property string $updated_at
@@ -27,6 +28,10 @@ use YiiMailer;
  */
 class Order extends ActiveRecord
 {
+    const STATUS_PENDING = 0;
+    const STATUS_APPROVED = 1;
+    const STATUS_REJECTED = 2;
+
     /**
      * {@inheritdoc}
      */
@@ -65,10 +70,11 @@ class Order extends ActiveRecord
         return [
             [['date', 'time', 'created_at', 'updated_at'], 'safe'],
             [['count', 'created_by', 'updated_by'], 'integer'],
-            [['restaurant_name', 'location', 'manager_email'/*, 'created_by', 'updated_by'*/], 'required'],
+            [['restaurant_name', 'manager_id', 'location_id', /*, 'created_by', 'updated_by'*/], 'required'],
             [['notes'], 'string'],
-            [['restaurant_name', 'restaurant_link', 'location', 'manager_email'], 'string', 'max' => 255],
-            [['date'], 'date', 'format' => 'php:Y-m-d']
+            [['restaurant_name', 'restaurant_link'], 'string', 'max' => 255],
+            [['date'], 'date', 'format' => 'php:Y-m-d'],
+            ['status', 'in', 'range' => [self::STATUS_APPROVED, self::STATUS_PENDING, self::STATUS_REJECTED]],
         ];
     }
 
@@ -84,8 +90,8 @@ class Order extends ActiveRecord
             'count' => 'Count',
             'restaurant_name' => 'Restaurant Name',
             'restaurant_link' => 'Restaurant Link',
-            'location' => 'Location',
-            'manager_email' => 'Manager Email',
+            'location_id' => 'Location',
+            'manager_id' => 'Manager',
             'restrictions' => 'Restrictions',
             'notes' => 'Notes',
             'created_by' => 'Created By',

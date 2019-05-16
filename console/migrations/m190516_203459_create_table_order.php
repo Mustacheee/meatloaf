@@ -25,8 +25,8 @@ class m190516_203459_create_table_order extends Migration
             'count' => $this->integer()->notNull()->defaultValue(1),
             'restaurant_name' => $this->string()->notNull(),
             'restaurant_link' => $this->string()->defaultValue(null),
-            'location' => $this->string()->notNull(),
-            'manager_email' => $this->string()->notNull(),
+            'manager_id' => $this->integer()->notNull(),
+            'location_id' => $this->integer(),
             'restrictions' => $this->text(),
             'notes' => $this->text(),
             'created_by' => $this->integer()->notNull(),
@@ -34,6 +34,8 @@ class m190516_203459_create_table_order extends Migration
             'updated_at' => $this->dateTime()->notNull()->defaultExpression('CURRENT_TIMESTAMP')->append('ON UPDATE CURRENT_TIMESTAMP'),
             'updated_by' => $this->integer()->notNull()
         ], $tableOptions);
+
+        $this->addForeignKey('fk_orders_manager', '{{%order}}', 'manager_id', \common\models\User::tableName(), 'id');
     }
 
     /**

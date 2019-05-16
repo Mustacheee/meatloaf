@@ -1,6 +1,9 @@
 <?php
-
+use app\models\Order;
 use yii\helpers\Html;
+/**
+ * @var Order $model
+ */
 ?>
 <div>
     <h1>Hey you've got a new meal to approve:</h1>
@@ -9,4 +12,6 @@ use yii\helpers\Html;
             <tr><td><?= $attribute?></td> : <td><?= $value ?></td></tr>
         <?php endforeach; ?>
     </table>
+    <?= Html::a('Approve', "/order/{$model->id}/approve")?>
+    <?= Html::a('Reject', "/order/{$model->id}/reject")?>
 </div>

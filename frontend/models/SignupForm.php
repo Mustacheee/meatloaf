@@ -10,7 +10,8 @@ use common\models\User;
  */
 class SignupForm extends Model
 {
-    public $username;
+    public $first_name;
+    public $last_name;
     public $email;
     public $password;
 
@@ -21,10 +22,9 @@ class SignupForm extends Model
     public function rules()
     {
         return [
-            ['username', 'trim'],
-            ['username', 'required'],
-            ['username', 'unique', 'targetClass' => '\common\models\User', 'message' => 'This username has already been taken.'],
-            ['username', 'string', 'min' => 2, 'max' => 255],
+            [['first_name', 'last_name'], 'trim'],
+            [['first_name', 'last_name'], 'required'],
+            [['first_name', 'last_name'], 'string', 'min' => 2, 'max' => 255],
 
             ['email', 'trim'],
             ['email', 'required'],
@@ -49,7 +49,8 @@ class SignupForm extends Model
         }
         
         $user = new User();
-        $user->username = $this->username;
+        $user->first_name = $this->first_name;
+        $user->last_name = $this->last_name;
         $user->email = $this->email;
         $user->setPassword($this->password);
         $user->generateAuthKey();
@@ -65,6 +66,8 @@ class SignupForm extends Model
      */
     protected function sendEmail($user)
     {
+        return true;
+
         return Yii::$app
             ->mailer
             ->compose(
