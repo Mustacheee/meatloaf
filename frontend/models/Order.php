@@ -2,7 +2,10 @@
 
 namespace app\models;
 
+use SendGrid\Mail\Mail;
 use Yii;
+use yii\db\ActiveRecord;
+use YiiMailer;
 
 /**
  * This is the model class for table "order".
@@ -22,7 +25,7 @@ use Yii;
  * @property string $updated_at
  * @property int $updated_by
  */
-class Order extends \yii\db\ActiveRecord
+class Order extends ActiveRecord
 {
     /**
      * {@inheritdoc}
@@ -44,6 +47,14 @@ class Order extends \yii\db\ActiveRecord
         $this->updated_by = 1;
         $this->created_by = 1;
         return parent::beforeSave($insert);
+    }
+
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+        if ($insert) {
+            $this->sendEmail();
+        }
     }
 
     /**
@@ -82,5 +93,20 @@ class Order extends \yii\db\ActiveRecord
             'updated_at' => 'Updated At',
             'updated_by' => 'Updated By',
         ];
+    }
+
+    private function sendEmail()
+    {
+        $to = YII_ENV_DEV ? Yii::$app->params['testEmail'] : $this->manager_email;
+
+        $email = new Mail();
+        $email->setFrom(Yii::$app->params['senderEmail'], "Meatloaf Request");
+        $email->setSubject("New Meal Request for" . date('m/d/Y', strtotime($this->date)));
+        $email->addTo($to, "Manager Name");
+        $email->addContent("text/plain", "and easy to do anywhere, even with PHP");
+        $email->addContent(
+            "text/html", Yii::$app->view->render('@frontend/views/layouts/new_meal', ['model' => $this]));
+        $sendgrid = new \SendGrid(Yii::$app->params['sendgrid.apikey']);
+        $response = $sendgrid->send($email);
     }
 }
