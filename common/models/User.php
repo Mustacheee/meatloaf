@@ -11,7 +11,9 @@ use yii\web\IdentityInterface;
  * User model
  *
  * @property integer $id
- * @property string $username
+ * @property string $first_name
+ * @property string $last_name
+ * @property int $role_id
  * @property string $password_hash
  * @property string $password_reset_token
  * @property string $verification_token
@@ -37,6 +39,11 @@ class User extends ActiveRecord implements IdentityInterface
         return '{{%user}}';
     }
 
+    public static function findByEmail($email)
+    {
+        return User::find(['email' => $email])->one();
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -55,6 +62,8 @@ class User extends ActiveRecord implements IdentityInterface
         return [
             ['status', 'default', 'value' => self::STATUS_INACTIVE],
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_DELETED]],
+            [['first_name', 'last_name'], 'string', 'max' => 32, 'min' => 2],
+            ['email', 'email']
         ];
     }
 
@@ -75,14 +84,10 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * Finds user by username
-     *
-     * @param string $username
-     * @return static|null
      */
     public static function findByUsername($username)
     {
-        return static::findOne(['username' => $username, 'status' => self::STATUS_ACTIVE]);
+        return null;
     }
 
     /**
@@ -205,5 +210,18 @@ class User extends ActiveRecord implements IdentityInterface
     public function removePasswordResetToken()
     {
         $this->password_reset_token = null;
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery|\common\models\Role
+     */
+    public function getRole()
+    {
+        return $this->hasOne(Role::class, ['id' => 'role_id']);
+    }
+
+    public function getFullName()
+    {
+        return $this->first_name . ' ' . $this->last_name;
     }
 }
