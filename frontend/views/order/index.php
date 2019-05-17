@@ -1,45 +1,52 @@
 <?php
 use app\models\Order;
+use yii\data\ActiveDataProvider;
+use yii\grid\GridView;
 use yii\helpers\Html;
 /**
  * @var Order[] $pending
  * @var Order[] $completed
+ * @var ActiveDataProvider $dataProvider
  */
 ?>
-<div>
-    <div id="pending-orders">
-        <h2>Pending: <?= count($pending) ?></h2>
-        <table>
-            <?php foreach ($pending as $order) : ?>
-                <tr>
-                    <td><?= $order->id ?></td>
-                    <td><?= $order->date ?></td>
-                    <td><?= $order->created_by ?></td>
-                    <td><?= $order->restaurant_name ?></td>
-                    <td><?= $order->count ?></td>
-                </tr>
-                <tr>
-                    <td><?= Html::a('Approve', "/order/approve/{$order->id}")?></td>
-                    <td><?= Html::a('Reject', "/order/reject/{$order->id}")?></td>
-                </tr>
-            <?php endforeach; ?>
-        </table>
-
-    </div>
-
-    <div id="completed-orders">
-        <h2>Completed: <?= count($completed) ?></h2>
-        <table>
-            <?php foreach ($completed as $order) : ?>
-                <tr>
-                    <td><?= $order->id ?></td>
-                    <td><?= $order->date ?></td>
-                    <td><?= $order->created_by ?></td>
-                    <td><?= $order->restaurant_name ?></td>
-                    <td><?= $order->count ?></td>
-                    <td><?= $order->getStatusString() ?></td>
-                </tr>
-            <?php endforeach; ?>
-        </table>
-    </div>
-</div>
+<?=  GridView::widget([
+    'dataProvider' => $dataProvider,
+    'columns' => [
+        'date',
+        'count',
+        'restaurant_name',
+        'restaurant_link',
+        [
+            'label' => 'Requested Approver',
+            'value' => function (Order $data) {
+                return $data->manager->fullName;
+            }
+        ],
+        [
+            'label' => 'Submitted By',
+            'value' => function (Order $data) {
+                return $data->createdBy->fullName;
+            }
+        ],
+        'restrictions',
+        'notes',
+        [
+            "label" => 'Status',
+            'value' => function (Order $data) {
+                return $data->getStatusString();
+            }
+        ],
+        [
+            'class' => 'yii\grid\ActionColumn',
+            'template' => '{update} {delete} {accept} {reject}',
+            'buttons' => [
+                'accept' => function($url, Order $model, $key) {
+                    return $model->isPending() ?  Html::a('Approve', "/order/approve/{$model->id}") : '';
+                },
+                'reject' => function($url, Order $model, $key) {
+                    return $model->isPending() ?  Html::a('Reject', "/order/reject/{$model->id}") : '';
+                },
+            ]
+        ],
+    ],
+]);
