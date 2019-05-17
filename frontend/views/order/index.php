@@ -37,6 +37,7 @@ use yii\helpers\Html;
                     <td><?= $order->created_by ?></td>
                     <td><?= $order->restaurant_name ?></td>
                     <td><?= $order->count ?></td>
+                    <td><?= $order->getStatusString() ?></td>
                 </tr>
             <?php endforeach; ?>
         </table>
