@@ -4,7 +4,6 @@ namespace app\models;
 
 use SendGrid\Mail\Mail;
 use Yii;
-use yii\base\Exception;
 use yii\db\ActiveRecord;
 use yii\log\Logger;
 use YiiMailer;
@@ -14,7 +13,6 @@ use YiiMailer;
  *
  * @property int $id
  * @property string $date
- * @property string $time
  * @property int $count
  * @property string $restaurant_name
  * @property string $restaurant_link
@@ -44,15 +42,20 @@ class Order extends ActiveRecord
 
     public function beforeValidate()
     {
-        $this->date = empty($this->date) ? null : date('Y-m-d', strtotime($this->date));
+        $this->created_by = Yii::$app->user->identity->id;
+        $this->updated_by = Yii::$app->user->identity->id;
         return parent::beforeValidate();
+    }
+
+    public function validate($attributeNames = null, $clearErrors = true)
+    {
+        return parent::validate($attributeNames, $clearErrors);
     }
 
     public function beforeSave($insert)
     {
+        $this->date = empty($this->date) ? null : (new \DateTime($this->date))->format('Y-m-d H:i:s');
         $this->restrictions = empty($this->restrictions) ? null : json_encode($this->restrictions);
-        $this->updated_by = 1;
-        $this->created_by = 1;
         return parent::beforeSave($insert);
     }
 
@@ -70,12 +73,12 @@ class Order extends ActiveRecord
     public function rules()
     {
         return [
-            [['date', 'time', 'created_at', 'updated_at'], 'safe'],
+            [['date', 'created_at', 'updated_at'], 'safe'],
             [['count', 'created_by', 'updated_by'], 'integer'],
-            [['restaurant_name', 'manager_id', 'location_id', /*, 'created_by', 'updated_by'*/], 'required'],
+            [['restaurant_name', 'manager_id', 'location_id', 'created_by', 'updated_by', 'count'], 'required'],
             [['notes'], 'string'],
             [['restaurant_name', 'restaurant_link'], 'string', 'max' => 255],
-            [['date'], 'date', 'format' => 'php:Y-m-d'],
+            [['date'], 'datetime', 'format' => 'php:m/d/Y h:i'],
             ['status', 'in', 'range' => [self::STATUS_APPROVED, self::STATUS_PENDING, self::STATUS_REJECTED]],
         ];
     }
@@ -88,10 +91,9 @@ class Order extends ActiveRecord
         return [
             'id' => 'ID',
             'date' => 'Date',
-            'time' => 'Time',
             'count' => 'Count',
             'restaurant_name' => 'Restaurant Name',
-            'restaurant_link' => 'Restaurant Link',
+            'restaurant_link' => 'Restaurant Menu Link',
             'location_id' => 'Location',
             'manager_id' => 'Manager',
             'restrictions' => 'Restrictions',
