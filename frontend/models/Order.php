@@ -4,7 +4,9 @@ namespace app\models;
 
 use SendGrid\Mail\Mail;
 use Yii;
+use yii\base\Exception;
 use yii\db\ActiveRecord;
+use yii\log\Logger;
 use YiiMailer;
 
 /**
@@ -94,11 +96,26 @@ class Order extends ActiveRecord
             'manager_id' => 'Manager',
             'restrictions' => 'Restrictions',
             'notes' => 'Notes',
+            'status' => 'Status',
             'created_by' => 'Created By',
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
             'updated_by' => 'Updated By',
         ];
+    }
+
+    public function getStatusString()
+    {
+        switch($this->status) {
+            case self::STATUS_PENDING:
+                return "Pending";
+            case self::STATUS_APPROVED:
+                return "Approved";
+            case self::STATUS_REJECTED:
+                return "Rejected";
+            default:
+                Yii::getLogger()->log("Unknown status", Logger::LEVEL_ERROR);
+        }
     }
 
     private function sendEmail()
