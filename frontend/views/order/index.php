@@ -83,11 +83,11 @@ $userId = Yii::$app->user->id;
                         return Html::a('<span class="glyphicon glyphicon-trash"></span>', "/order/delete/{$model->id}");
                     }
                 },
-                'accept' => function($url, Order $model, $key) {
-                    return $model->isPending() ?  Html::a('<span class="glyphicon glyphicon-ok"></span>', "/order/approve/{$model->id}") : '';
+                'accept' => function($url, Order $model, $key) use ($isAdmin, $userId) {
+                    return ($model->isPending() && ($isAdmin || $model->manager_id === $userId))  ?  Html::a('<span class="glyphicon glyphicon-ok"></span>', "/order/approve/{$model->id}") : '';
                 },
-                'reject' => function($url, Order $model, $key) {
-                    return $model->isPending() ?  Html::a('<span class="glyphicon glyphicon-remove"></span>', "/order/reject/{$model->id}") : '';
+                'reject' => function($url, Order $model, $key) use ($isAdmin, $userId) {
+                    return ($model->isPending() && ($isAdmin || $model->manager_id === $userId))?  Html::a('<span class="glyphicon glyphicon-remove"></span>', "/order/reject/{$model->id}") : '';
                 },
             ]
         ],

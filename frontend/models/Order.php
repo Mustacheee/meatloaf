@@ -44,13 +44,15 @@ class Order extends ActiveRecord
 
     public function beforeValidate()
     {
-        $this->created_by = Yii::$app->user->identity->id;
         $this->updated_by = Yii::$app->user->identity->id;
         return parent::beforeValidate();
     }
 
     public function beforeSave($insert)
     {
+        if ($insert) {
+            $this->created_by = Yii::$app->user->id;
+        }
         $this->date = empty($this->date) ? null : (new \DateTime($this->date))->format('Y-m-d H:i:s');
 
         $restrictions = $this->restrictions;
@@ -86,7 +88,7 @@ class Order extends ActiveRecord
         return [
             [['date', 'created_at', 'updated_at', 'restrictions'], 'safe'],
             [['count', 'created_by', 'updated_by'], 'integer'],
-            [['restaurant_name', 'manager_id', 'location_id', 'created_by', 'updated_by', 'count', 'date'], 'required'],
+            [['restaurant_name', 'manager_id', 'location_id', 'count', 'date'], 'required'],
             [['notes'], 'string'],
             ['restaurant_link', 'url'],
             [['restaurant_name', 'restaurant_link'], 'string', 'max' => 255],
