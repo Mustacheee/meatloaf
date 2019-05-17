@@ -19,8 +19,8 @@ use yii\helpers\Html;
                     <td><?= $order->count ?></td>
                 </tr>
                 <tr>
-                    <td><?= Html::a('Approve', "/order/{$order->id}/approve")?></td>
-                    <td><?= Html::a('Reject', "/order/{$order->id}/reject")?></td>
+                    <td><?= Html::a('Approve', "/order/approve/{$order->id}")?></td>
+                    <td><?= Html::a('Reject', "/order/reject/{$order->id}")?></td>
                 </tr>
             <?php endforeach; ?>
         </table>
