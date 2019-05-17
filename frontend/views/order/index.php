@@ -1,21 +1,40 @@
 <?php
 use app\models\Order;
+use common\models\Role;
 use yii\data\ActiveDataProvider;
 use yii\grid\GridView;
 use yii\helpers\Html;
+use yii\helpers\Url;
+
 /**
  * @var Order[] $pending
  * @var Order[] $completed
  * @var ActiveDataProvider $dataProvider
  */
+
+$isAdmin = Yii::$app->user->identity->role->isAtLeast(Role::ROLE_SYS_ADMIN);
+$userId = Yii::$app->user->id;
 ?>
 <?=  GridView::widget([
     'dataProvider' => $dataProvider,
     'columns' => [
         'date',
         'count',
+        [
+            'label' => 'Meeting Location',
+            'value' => function (Order $order) {
+                return $order->location->name;
+            }
+        ],
         'restaurant_name',
-        'restaurant_link',
+        [
+            'label' => 'Restaurant Menu Link',
+            'format' => 'html',
+            'value' => function (Order $data) {
+                return empty($data->restaurant_link) ? '' :
+                    Html::a($data->restaurant_name, Url::to($data->restaurant_link, 'https'));
+            }
+        ],
         [
             'label' => 'Requested Approver',
             'value' => function (Order $data) {
@@ -28,7 +47,21 @@ use yii\helpers\Html;
                 return $data->createdBy->fullName;
             }
         ],
-        'restrictions',
+        [
+            'label' => 'Dietary Restrictions',
+            'format' => 'html',
+            'value' => function (Order $data) {
+                if (empty($data->restrictions)) {
+                    return '';
+                }
+
+                $value = '<ul>';
+                foreach ($data->restrictions as $restriction) {
+                    $value .= "<li>{$restriction}</li>";
+                }
+                return $value . '</ul>';
+            }
+        ],
         'notes',
         [
             "label" => 'Status',
@@ -38,13 +71,23 @@ use yii\helpers\Html;
         ],
         [
             'class' => 'yii\grid\ActionColumn',
-            'template' => '{update} {delete} {accept} {reject}',
+            'template' => '{myUpdate} {delete} {accept} {reject}',
             'buttons' => [
+                'myUpdate' => function($url, Order $model, $key) use ($isAdmin, $userId) {
+                    if ($isAdmin || $model->created_by === $userId || $model->manager_id === $userId) {
+                        return Html::a('<span class="glyphicon glyphicon-pencil"></span>', "/order/update/{$model->id}");
+                    }
+                },
+                'delete' => function($url, Order $model, $key) use ($isAdmin, $userId) {
+                    if ($isAdmin || $model->created_by === $userId || $model->manager_id === $userId) {
+                        return Html::a('<span class="glyphicon glyphicon-trash"></span>', "/order/delete/{$model->id}");
+                    }
+                },
                 'accept' => function($url, Order $model, $key) {
-                    return $model->isPending() ?  Html::a('Approve', "/order/approve/{$model->id}") : '';
+                    return $model->isPending() ?  Html::a('<span class="glyphicon glyphicon-ok"></span>', "/order/approve/{$model->id}") : '';
                 },
                 'reject' => function($url, Order $model, $key) {
-                    return $model->isPending() ?  Html::a('Reject', "/order/reject/{$model->id}") : '';
+                    return $model->isPending() ?  Html::a('<span class="glyphicon glyphicon-remove"></span>', "/order/reject/{$model->id}") : '';
                 },
             ]
         ],

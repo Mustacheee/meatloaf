@@ -32,34 +32,36 @@ $form = ActiveForm::begin();
 
 <?= $form->field($model, 'location_id')->widget(Select2::class, [
     'options' => ['placeholder' => 'Select a location for delivery ...'],
+    'data' => $locations,
     'pluginOptions' => [
         'allowClear' => true,
-        'minimumInputLength' => 2,
-        'language' => [
-            'errorLoading' => new JsExpression("function () { return 'Waiting for results...'; }"),
-        ],
-        'ajax' => [
-            'url' => '/location/get-locations',
-            'dataType' => 'json',
-            'data' => new JsExpression('function(params) { return {q:params.term}; }')
-        ],
+ //       'minimumInputLength' => 2,
+//        'language' => [
+//            'errorLoading' => new JsExpression("function () { return 'Waiting for results...'; }"),
+//        ],
+//        'ajax' => [
+//            'url' => '/location/get-locations',
+//            'dataType' => 'json',
+//            'data' => new JsExpression('function(params) { return {q:params.term}; }')
+//        ],
     ],
 ]) ?>
 
 <?= $form->field($model, 'manager_id')->widget(
     Select2::class, [
     'options' => ['placeholder' => 'Select a manager ...'],
+    'data' => $managers,
     'pluginOptions' => [
         'allowClear' => true,
-        'minimumInputLength' => 2,
-        'language' => [
-            'errorLoading' => new JsExpression("function () { return 'Waiting for results...'; }"),
-        ],
-        'ajax' => [
-            'url' => '/user/get-managers',
-            'dataType' => 'json',
-            'data' => new JsExpression('function(params) { return {q:params.term}; }')
-        ],
+//        'minimumInputLength' => 2,
+//        'language' => [
+//            'errorLoading' => new JsExpression("function () { return 'Waiting for results...'; }"),
+//        ],
+//        'ajax' => [
+//            'url' => '/user/get-managers',
+//            'dataType' => 'json',
+//            'data' => new JsExpression('function(params) { return {q:params.term}; }')
+//        ],
     ],
 ]) ?>
 

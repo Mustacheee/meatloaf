@@ -3,9 +3,13 @@
 namespace frontend\controllers;
 
 use app\models\Order;
+use common\models\Location;
+use common\models\Role;
+use common\models\User;
 use Yii;
 use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
+use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\web\HttpException;
 
@@ -18,7 +22,7 @@ class OrderController extends Controller
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
-                        'actions' => ['index', 'create', 'approve', 'reject', 'delete'],
+                        'actions' => ['index', 'create', 'approve', 'reject', 'delete', 'update'],
                         'allow' => true,
                         'roles' => ['@']
                     ],
@@ -32,6 +36,7 @@ class OrderController extends Controller
         $query = Order::find()
             ->with('createdBy')
             ->with('manager')
+            ->with('location')
             ->where([
                 'OR',
                 ['created_by' => Yii::$app->user->id],
@@ -56,10 +61,27 @@ class OrderController extends Controller
         $order = new Order();
 
         if ($order->load(Yii::$app->request->post()) && $order->save()) {
-            return $this->render('confirmation');
+            Yii::$app->session->addFlash('success', 'The order has been created.');
+            return $this->redirect('/order/');
         }
 
-        return $this->render('create', ['model' => $order]);
+        $locations = ArrayHelper::map(Location::find()->orderBy('name')->all(), 'id', 'name');
+        $managers = ArrayHelper::map(User::find()->where(['<=', 'role_id', Role::ROLE_MANAGER])->orderBy(['first_name' => SORT_ASC, 'last_name' => SORT_ASC])->all(), 'id', 'fullName');
+        return $this->render('create', ['model' => $order, 'locations' => $locations, 'managers' => $managers]);
+    }
+
+    public function actionUpdate($id)
+    {
+        $order = Order::findOne($id);
+
+        if ($order->load(Yii::$app->request->post()) && $order->save()) {
+            Yii::$app->session->addFlash('success', 'The order has been updated.');
+            return $this->redirect('/order/');
+        }
+
+        $locations = ArrayHelper::map(Location::find()->orderBy('name')->all(), 'id', 'name');
+        $managers = ArrayHelper::map(User::find()->where(['<=', 'role_id', Role::ROLE_MANAGER])->orderBy(['first_name' => SORT_ASC, 'last_name' => SORT_ASC])->all(), 'id', 'fullName');
+        return $this->render('create', ['model' => $order, 'locations' => $locations, 'managers' => $managers]);
     }
 
     public function actionDelete($id)
@@ -80,9 +102,10 @@ class OrderController extends Controller
         }
 
         $order->status = Order::STATUS_APPROVED;
-        $order->save();
-        Yii::$app->session->addFlash('success', 'The order has been approved.');
-        return $this->redirect('/order');
+        if ($order->save()) {
+            Yii::$app->session->addFlash('success', 'The order has been approved.');
+        }
+        return $this->redirect('/order/');
     }
 
     public function actionReject($id)
@@ -94,8 +117,9 @@ class OrderController extends Controller
         }
 
         $order->status = Order::STATUS_REJECTED;
-        $order->save();
-        Yii::$app->session->addFlash('error', 'The order has been rejected.');
+        if ($order->save()) {
+            Yii::$app->session->addFlash('error', 'The order has been rejected.');
+        }
         return $this->redirect('/order/');
     }
 }

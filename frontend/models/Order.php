@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use common\models\Location;
 use common\models\User;
 use SendGrid\Mail\Mail;
 use Yii;
@@ -51,7 +52,14 @@ class Order extends ActiveRecord
     public function beforeSave($insert)
     {
         $this->date = empty($this->date) ? null : (new \DateTime($this->date))->format('Y-m-d H:i:s');
-        $this->restrictions = empty($this->restrictions) ? null : json_encode($this->restrictions);
+
+        $restrictions = $this->restrictions;
+        if (!is_null($restrictions)) {
+            $restrictions = array_filter($restrictions);
+        }
+
+        $this->restrictions = empty($restrictions) ? null : json_encode($restrictions);
+
         return parent::beforeSave($insert);
     }
 
@@ -59,6 +67,7 @@ class Order extends ActiveRecord
     {
         parent::afterFind();
         $this->date = empty($this->date) ? null : (new \DateTime($this->date))->format('m/d/Y h:i:s');
+        $this->restrictions = empty($this->restrictions) ? null : json_decode($this->restrictions);
     }
 
     public function afterSave($insert, $changedAttributes)
@@ -75,12 +84,12 @@ class Order extends ActiveRecord
     public function rules()
     {
         return [
-            [['date', 'created_at', 'updated_at'], 'safe'],
+            [['date', 'created_at', 'updated_at', 'restrictions'], 'safe'],
             [['count', 'created_by', 'updated_by'], 'integer'],
-            [['restaurant_name', 'manager_id', 'location_id', 'created_by', 'updated_by', 'count'], 'required'],
+            [['restaurant_name', 'manager_id', 'location_id', 'created_by', 'updated_by', 'count', 'date'], 'required'],
             [['notes'], 'string'],
+            ['restaurant_link', 'url'],
             [['restaurant_name', 'restaurant_link'], 'string', 'max' => 255],
-            [['date'], 'datetime', 'format' => 'php:m/d/Y h:i:s'],
             ['status', 'in', 'range' => [self::STATUS_APPROVED, self::STATUS_PENDING, self::STATUS_REJECTED]],
         ];
     }
@@ -93,7 +102,7 @@ class Order extends ActiveRecord
         return [
             'id' => 'ID',
             'date' => 'Date',
-            'count' => 'Count',
+            'count' => 'Head Count',
             'restaurant_name' => 'Restaurant Name',
             'restaurant_link' => 'Restaurant Menu Link',
             'location_id' => 'Location',
@@ -150,5 +159,10 @@ class Order extends ActiveRecord
     public function isPending()
     {
         return $this->status === self::STATUS_PENDING;
+    }
+
+    public function getLocation()
+    {
+        return $this->hasOne(Location::class, ['id' => 'location_id']);
     }
 }

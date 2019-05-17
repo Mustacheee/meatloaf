@@ -44,6 +44,9 @@ AppAsset::register($this);
         $menuItems[] = ['label' => 'Login', 'url' => ['/site/login']];
     } else {
         $menuItems[] = ['label' => 'Create Order', 'url' => ['/order/create']];
+        if (Yii::$app->user->identity->role->isAtLeast(Role::ROLE_MANAGER)) {
+            $menuItems[] = ['label' => 'View Orders', 'url' => ['/order ']];
+        }
         $menuItems[] = '<li>'
             . Html::beginForm(['/site/logout'], 'post')
             . Html::submitButton(
@@ -52,10 +55,6 @@ AppAsset::register($this);
             )
             . Html::endForm()
             . '</li>';
-
-        if (Yii::$app->user->identity->role->isAtLeast(Role::ROLE_MANAGER)) {
-            $menuItems[] = ['label' => 'View Orders', 'url' => ['/order ']];
-        }
     }
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav navbar-right'],
