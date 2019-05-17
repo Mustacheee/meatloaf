@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use common\models\User;
 use SendGrid\Mail\Mail;
 use Yii;
 use yii\db\ActiveRecord;
@@ -47,16 +48,17 @@ class Order extends ActiveRecord
         return parent::beforeValidate();
     }
 
-    public function validate($attributeNames = null, $clearErrors = true)
-    {
-        return parent::validate($attributeNames, $clearErrors);
-    }
-
     public function beforeSave($insert)
     {
         $this->date = empty($this->date) ? null : (new \DateTime($this->date))->format('Y-m-d H:i:s');
         $this->restrictions = empty($this->restrictions) ? null : json_encode($this->restrictions);
         return parent::beforeSave($insert);
+    }
+
+    public function afterFind()
+    {
+        parent::afterFind();
+        $this->date = empty($this->date) ? null : (new \DateTime($this->date))->format('m/d/Y h:i:s');
     }
 
     public function afterSave($insert, $changedAttributes)
@@ -78,7 +80,7 @@ class Order extends ActiveRecord
             [['restaurant_name', 'manager_id', 'location_id', 'created_by', 'updated_by', 'count'], 'required'],
             [['notes'], 'string'],
             [['restaurant_name', 'restaurant_link'], 'string', 'max' => 255],
-            [['date'], 'datetime', 'format' => 'php:m/d/Y h:i'],
+            [['date'], 'datetime', 'format' => 'php:m/d/Y h:i:s'],
             ['status', 'in', 'range' => [self::STATUS_APPROVED, self::STATUS_PENDING, self::STATUS_REJECTED]],
         ];
     }
@@ -133,5 +135,20 @@ class Order extends ActiveRecord
             "text/html", Yii::$app->view->render('@frontend/views/layouts/new_meal', ['model' => $this]));
         $sendgrid = new \SendGrid(Yii::$app->params['sendgrid.apikey']);
         $response = $sendgrid->send($email);
+    }
+
+    public function getCreatedBy()
+    {
+        return $this->hasOne(User::class, ['id' => 'created_by']);
+    }
+
+    public function getManager()
+    {
+        return $this->hasOne(User::class, ['id' => 'manager_id']);
+    }
+
+    public function isPending()
+    {
+        return $this->status === self::STATUS_PENDING;
     }
 }

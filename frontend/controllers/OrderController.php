@@ -4,6 +4,7 @@ namespace frontend\controllers;
 
 use app\models\Order;
 use Yii;
+use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\HttpException;
@@ -17,7 +18,7 @@ class OrderController extends Controller
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
-                        'actions' => ['index', 'create', 'approve', 'reject'],
+                        'actions' => ['index', 'create', 'approve', 'reject', 'delete'],
                         'allow' => true,
                         'roles' => ['@']
                     ],
@@ -28,13 +29,26 @@ class OrderController extends Controller
 
     public function actionIndex()
     {
-        $pending   = Order::find()->where(['status' => Order::STATUS_PENDING])->orderBy('date')->all();
-        $completed = Order::find()
-            ->where(['in', 'status', [Order::STATUS_APPROVED, Order::STATUS_REJECTED]])
-            ->orderBy('date')
-            ->all();
+        $query = Order::find()
+            ->with('createdBy')
+            ->with('manager')
+            ->where([
+                'OR',
+                ['created_by' => Yii::$app->user->id],
+                ['manager_id' => Yii::$app->user->id]
+            ])
+            ->orderBy(['status' => SORT_ASC, 'date' => SORT_DESC]);
 
-        return $this->render('index', ['pending' => $pending, 'completed' => $completed]);
+
+
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => 20,
+            ],
+        ]);
+
+        return $this->render('index', ['dataProvider' => $dataProvider]);
     }
 
     public function actionCreate()
@@ -46,6 +60,15 @@ class OrderController extends Controller
         }
 
         return $this->render('create', ['model' => $order]);
+    }
+
+    public function actionDelete($id)
+    {
+        $order = Order::findOne($id);
+        if ($order->delete()) {
+            Yii::$app->session->addFlash('success', 'The order has been deleted.');
+        }
+        return $this->redirect(Yii::$app->request->referrer);
     }
 
     public function actionApprove($id)
