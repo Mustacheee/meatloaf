@@ -20,9 +20,8 @@ class m190516_203459_create_table_order extends Migration
 
         $this->createTable('{{%order}}', [
             'id' => $this->primaryKey(),
-            'date' => $this->date(),
-            'time' => $this->timestamp(),
-            'count' => $this->integer()->notNull()->defaultValue(1),
+            'date' => $this->dateTime(),
+            'count' => $this->integer()->defaultValue(1),
             'restaurant_name' => $this->string()->notNull(),
             'restaurant_link' => $this->string()->defaultValue(null),
             'manager_id' => $this->integer()->notNull(),

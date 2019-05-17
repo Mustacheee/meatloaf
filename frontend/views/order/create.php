@@ -2,7 +2,7 @@
 
 use kartik\select2\Select2;
 use kartik\widgets\ActiveForm;
-use kartik\widgets\DatePicker;
+use kartik\widgets\DateTimePicker;
 use unclead\multipleinput\MultipleInput;
 use yii\helpers\Html;
 use yii\web\JsExpression;
@@ -11,9 +11,18 @@ $form = ActiveForm::begin();
 
 ?>
 
-<?= $form->field($model, 'date')->widget(DatePicker::className()); ?>
-
-<?= $form->field($model, 'time')->textInput() ?>
+<?= $form->field($model, 'date')->widget(DateTimePicker::class, [
+    'type' => DateTimePicker::TYPE_INPUT,
+    'convertFormat' => true,
+    'options' => [
+        'autocomplete' => 'off'
+    ],
+    'pluginOptions' => [
+        'autocomplete' => false,
+        'autoclose'=>true,
+        'format' => 'M/dd/yyyy hh:i'
+    ]
+]); ?>
 
 <?= $form->field($model,  'count')->textInput() ?>
 
