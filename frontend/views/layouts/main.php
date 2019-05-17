@@ -54,7 +54,7 @@ AppAsset::register($this);
             . '</li>';
 
         if (Yii::$app->user->identity->role->isAtLeast(Role::ROLE_MANAGER)) {
-            $menuItems[] = ['label' => 'View Orders', 'url' => ['/orders/']];
+            $menuItems[] = ['label' => 'View Orders', 'url' => ['/order ']];
         }
     }
     echo Nav::widget([

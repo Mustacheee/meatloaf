@@ -28,7 +28,13 @@ class OrderController extends Controller
 
     public function actionIndex()
     {
-        return $this->render('index');
+        $pending   = Order::find()->where(['status' => Order::STATUS_PENDING])->orderBy('date')->all();
+        $completed = Order::find()
+            ->where(['in', 'status', [Order::STATUS_APPROVED, Order::STATUS_REJECTED]])
+            ->orderBy('date')
+            ->all();
+
+        return $this->render('index', ['pending' => $pending, 'completed' => $completed]);
     }
 
     public function actionCreate()
