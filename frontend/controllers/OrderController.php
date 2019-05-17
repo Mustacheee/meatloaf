@@ -17,7 +17,7 @@ class OrderController extends Controller
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
-                        'actions' => ['index', 'create', 'approve'],
+                        'actions' => ['index', 'create', 'approve', 'reject'],
                         'allow' => true,
                         'roles' => ['@']
                     ],
@@ -59,7 +59,7 @@ class OrderController extends Controller
         $order->status = Order::STATUS_APPROVED;
         $order->save();
         Yii::$app->session->addFlash('success', 'The order has been approved.');
-        return $this->redirect('/order/');
+        return $this->redirect('/order');
     }
 
     public function actionReject($id)
